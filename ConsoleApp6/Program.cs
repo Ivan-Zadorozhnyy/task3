@@ -1,27 +1,5 @@
 ﻿namespace task3
 {
-    using System.IO;
-
-    string pathToFile = "/Users/vladshcherbyna/RiderProjects/task3/dictionary.txt";
-
-    try
-    {
-        string[] lines = File.ReadAllLines(pathToFile);
-
-        foreach (string line in lines)
-        {
-            Console.WriteLine(line);
-            // do something with each line here
-        }
-    }
-    catch (FileNotFoundException)
-    {
-        Console.WriteLine($"File not found: {pathToFile}");
-    }
-    catch (IOException ex)
-    {
-        Console.WriteLine($"An error occurred while reading the file: {ex.Message}");
-    }
     public class KeyValuePair
     {
         public string Key { get; }
@@ -34,6 +12,7 @@
             Value = value;
         }
     }
+
     public class LinkedListNode
     {
         public KeyValuePair Pair { get; }
@@ -50,6 +29,8 @@
     public class LinkedList
     {
         private LinkedListNode _first;
+
+        public LinkedListNode First => _first;
 
         public void Add(KeyValuePair pair)
         {
@@ -87,7 +68,7 @@
             {
                 if (current.Next.Pair.Key == key)
                 {
-                    current.Next = current.Next.Next;
+                    current.Next = new LinkedListNode(current.Next.Pair, current.Next.Next);
                     return;
                 }
 
@@ -102,7 +83,7 @@
             {
                 if (current.Pair.Key == key)
                 {
-                    return current.Pair;
+                    return new LinkedListNode(current.Pair, current.Next).Pair;
                 }
 
                 current = current.Next;
@@ -111,6 +92,7 @@
             return null;
         }
     }
+
     public class StringsDictionary
     {
         private const int InitialSize = 10;
@@ -124,7 +106,15 @@
             {
                 _buckets[hash] = new LinkedList();
             }
+
             _buckets[hash].Add(new KeyValuePair(key, value));
+            if (hash == _buckets.Length - 1)
+            {
+                // Double the size of the array and re-allocate the elements
+                LinkedList[] newBuckets = new LinkedList[InitialSize * 2];
+                Array.Copy(_buckets, newBuckets, _buckets.Length);
+                _buckets = newBuckets;
+            }
         }
 
         public void Remove(string key)
@@ -135,11 +125,12 @@
                 LinkedListNode current = _buckets[hash].First;
                 while (current != null)
                 {
-                    if (current.Value.Key == key)
+                    if (current.Pair.Key == key)
                     {
-                        _buckets[hash].Remove(current);
+                        _buckets[hash].RemoveByKey(key);
                         return;
                     }
+
                     current = current.Next;
                 }
             }
@@ -153,28 +144,53 @@
                 LinkedListNode current = _buckets[hash].First;
                 while (current != null)
                 {
-                    if (current.Value.Key == key)
+                    if (current.Pair.Key == key)
                     {
-                        return current.Value.Value;
+                        return current.Pair.Value;
                     }
+
                     current = current.Next;
                 }
             }
+
             return null;
         }
 
         private int CalculateHash(string key)
         {
-            const int p = 31; // prime number for hash function
-            const int m = 1000000007; // large prime number for modulo operation
-            int hash = 0;
-            int p_pow = 1;
-            foreach (char c in key)
+            int hash = key.GetHashCode();
+            return (hash & 0x7FFFFFFF) % InitialSize;
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            string filePath = "/Users/ivanzadorozhnyy/RiderProjects/ConsoleApp6/ConsoleApp6/dictionary.txt";
+            StringsDictionary stringsDictionary = new StringsDictionary();
+            using (StreamReader reader = new StreamReader(filePath))
             {
-                hash = (hash + (c - 'a' + 1) * p_pow) % m;
-                p_pow = (p_pow * p) % m;
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    string[] words = line.Split(";");
+                    stringsDictionary.Add(words.First(), words.Last());
+                }
             }
-            return hash % _buckets.Length;
+
+            while (true)
+            {
+                Console.Write("Enter a word (or type 'exit' to quit): ");
+                string input = Console.ReadLine();
+                if (input == "exit")
+                {
+                    break;
+                }
+
+                string value = stringsDictionary.Get(input);
+                Console.WriteLine($"Meaning of {input}: {value}");
+            }
         }
     }
 }
