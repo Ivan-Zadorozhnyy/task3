@@ -29,8 +29,10 @@
     public class LinkedList
     {
         private LinkedListNode _first;
+        private int _count;
 
         public LinkedListNode First => _first;
+        public int Count => _count;
 
         public void Add(KeyValuePair pair)
         {
@@ -48,6 +50,7 @@
 
                 current.Next = new LinkedListNode(pair);
             }
+            _count++;
         }
 
         public void RemoveByKey(string key)
@@ -60,6 +63,7 @@
             if (_first.Pair.Key == key)
             {
                 _first = _first.Next;
+                _count--;
                 return;
             }
 
@@ -69,6 +73,7 @@
                 if (current.Next.Pair.Key == key)
                 {
                     current.Next = new LinkedListNode(current.Next.Pair, current.Next.Next);
+                    _count--;
                     return;
                 }
 
@@ -92,10 +97,10 @@
             return null;
         }
     }
-
     public class StringsDictionary
     {
         private const int InitialSize = 10;
+        private const double LoadFactor = 0.75;
 
         private LinkedList[] _buckets = new LinkedList[InitialSize];
 
@@ -108,7 +113,7 @@
             }
 
             _buckets[hash].Add(new KeyValuePair(key, value));
-            if (hash == _buckets.Length - 1)
+            if (hash == _buckets.Length - 1 && GetNumberOfElements() > _buckets.Length * LoadFactor)
             {
                 // Double the size of the array and re-allocate the elements
                 LinkedList[] newBuckets = new LinkedList[InitialSize * 2];
@@ -161,8 +166,21 @@
             int hash = key.GetHashCode();
             return (hash & 0x7FFFFFFF) % InitialSize;
         }
-    }
 
+        private int GetNumberOfElements()
+        {
+            int numberOfElements = 0;
+            for (int i = 0; i < _buckets.Length; i++)
+            {
+                if (_buckets[i] != null)
+                {
+                    numberOfElements += _buckets[i].Count;
+                }
+            }
+
+            return numberOfElements;
+        }
+    }
     public class Program
     {
         public static void Main(string[] args)
