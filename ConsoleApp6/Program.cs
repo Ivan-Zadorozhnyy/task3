@@ -199,16 +199,45 @@
 
             while (true)
             {
-                Console.Write("Enter a word (or type 'exit' to quit): ");
-                string input = Console.ReadLine();
-                if (input == "exit")
+                Console.Write("Enter first word (or type 'exit' to quit): ");
+                string word1 = Console.ReadLine();
+                Console.Write("Enter second word: ");
+                string word2 = Console.ReadLine();
+                
+                //Console.Write("Enter a word (or type 'exit' to quit): ");
+                //string input = Console.ReadLine();
+                
+                if (word1.Length != word2.Length)
                 {
-                    break;
+                    Console.WriteLine("words are not anogramma");
+                    return;
+                }
+                //if (word1 == "exit")
+                //{
+                //break;
+                //}
+                
+                for (int i = 0; i < word1.Length; i++)
+                {
+                    for (int j = 0; j < word2.Length; j++)
+                    {
+                        if (word1[i] == word2[j])
+                        {
+                            break;
+                        }
+                        else if (j == word2.Length - 1)
+                        {
+                            Console.WriteLine("words are not anogramma");
+                            return;
+                        }
+                    }
                 }
 
-                string value = stringsDictionary.Get(input);
-                Console.WriteLine($"Meaning of {input}: {value}");
+                Console.WriteLine("words are anogramma");
             }
+
+            //string value = stringsDictionary.Get(word1);
+            //Console.WriteLine($"Meaning of {word1}: {value}");
         }
     }
 }
